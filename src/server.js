@@ -36,13 +36,7 @@ app.use((error, request, response, next) => {
             }),
         console.log(error)
     ]
-    
-    
-
         
-        
-        
-
 })
 
 //Defining port's number to send and receive requests
