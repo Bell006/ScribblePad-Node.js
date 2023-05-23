@@ -1,38 +1,41 @@
 const knex = require("../database/knex");
 
-
 class NotesController {
     async create(request, response) {
         const { title, description, tags, links } = request.body;
-        const { user_id } = request.params;
+        const user_id  = request.user.id;
 
         //cadastrando uma nota
-        const note_id = await knex("notes").insert({
+        const [note_id] = await knex("notes").insert({
             title,
             description,
             user_id
         });
 
-        const linksInsert = links.map(link => {
-            return {
-                note_id,
-                url: link
-            }
-        });
+        if(links) {
+            const linksInsert = links.map(link => {
+                return {
+                    note_id,
+                    url: link
+                }
+            });
+    
+            await knex("links").insert(linksInsert);
+        }
 
-        await knex("links").insert(linksInsert);
-
-        const tagsInsert = tags.map(name => {
-            return {
-                note_id,
-                name,
-                user_id
-            }
-        });
-
-        await knex("tags").insert(tagsInsert);
-
-        return response.status(200).json();
+        if(tags) {
+            const tagsInsert = tags.map(name => {
+                return {
+                    note_id,
+                    name,
+                    user_id
+                }
+            });
+    
+            await knex("tags").insert(tagsInsert);
+        }
+    
+        return response.status(200).json("Nota cadastrada com sucesso!");
 
     }
 
@@ -68,7 +71,8 @@ class NotesController {
 
 
     async index(request, response) {
-        const { user_id, title, tags } = request.query;
+        const { title, tags } = request.query;
+        const user_id = request.user.id;
 
         let notes;
 
@@ -85,6 +89,7 @@ class NotesController {
                 .whereLike("notes.title", `%${title}%`)
                 .whereIn("name", filterTags) //Comparando o name das tags passadas como parâmetro com o filterTags
                 .innerJoin("notes", "notes.id", "tags.note_id")
+                .groupBy("notes.id")
                 .orderBy("notes.title")
         } else {
 

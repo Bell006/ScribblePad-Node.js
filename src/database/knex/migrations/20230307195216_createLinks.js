@@ -7,7 +7,7 @@ exports.up = knex => knex.schema.createTable("links", table => {
     table.integer("note_id").references("id").inTable("notes").onDelete("CASCADE");
     //.onDelete("CASCADE") = Caso uma nota seja deletada, todos os links vinculadas também serão.
 
-    table.text("url").notNullable();
+    table.text("url");
     table.timestamp("created_at").default(knex.fn.now());
 
 }) 

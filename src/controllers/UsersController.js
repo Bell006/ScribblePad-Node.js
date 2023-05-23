@@ -7,7 +7,7 @@ const sqliteConnection = require("../database/sqlite")
 
 class UsersController {
     async create(request, response) {
-        const { name, email, password } = request.body
+        const { name, email, password } = request.body;
 
         const database = await sqliteConnection()
 
@@ -15,7 +15,7 @@ class UsersController {
         const checkUserExists = await database.get("SELECT * FROM users WHERE email = (?)", [email])
 
         if(checkUserExists) {
-            throw new AppError("Esse email já está cadastrado.")
+            throw new AppError("Esse email já está em uso.")
         }
 
         //parâmetros: senha e fator de complexidade da criptografia
@@ -27,14 +27,14 @@ class UsersController {
         [name, email, hashedPassword]
         );
 
-        return response.status(201).json()
+        return response.status(201).json("Usuário cadastrado com sucesso!")
     }
 
     async update(request, response) {
         
-        const { name, email, password, old_password } = request.body;
-        //id passado na url
-        const { id } = request.params;
+        const { name, email, avatar, password, old_password } = request.body;
+        
+        const id = request.user.id;
 
         //conectando com o banco de dados
         const database = await sqliteConnection()
@@ -54,6 +54,7 @@ class UsersController {
         //caso não seja informado o user ou o email, manter o antigo
         user.name = name ?? user.name;
         user.email = email ?? user.email;
+        user.avatar = avatar ?? user.avatar;
 
         if(password && !old_password) {
             throw new AppError("Você precisa informar sua senha antiga para definir uma nova.")
@@ -75,13 +76,14 @@ class UsersController {
             name = ?,
             email = ?,
             password = ?,
+            avatar = ?,
             updated_at = DATETIME('now')
             WHERE id = ?`,
-            [user.name, user.email, user.password, id]
+            [user.name, user.email, user.password, user.avatar, id]
         );
 
-        return response.status(200).json();
+        return response.status(200).json(user);
     }
 }
 
-module.exports = UsersController
+module.exports = UsersController;
