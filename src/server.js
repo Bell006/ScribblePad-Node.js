@@ -1,3 +1,5 @@
+require("dotenv/config");
+
 //Importando da biblioteca Express
 require("express-async-errors");
 const express = require('express');
